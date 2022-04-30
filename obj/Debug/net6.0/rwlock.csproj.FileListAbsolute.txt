@@ -1,0 +1,15 @@
+/Users/junjieli/Desktop/test.nosync/rwlock/bin/Debug/net6.0/rwlock
+/Users/junjieli/Desktop/test.nosync/rwlock/bin/Debug/net6.0/rwlock.deps.json
+/Users/junjieli/Desktop/test.nosync/rwlock/bin/Debug/net6.0/rwlock.runtimeconfig.json
+/Users/junjieli/Desktop/test.nosync/rwlock/bin/Debug/net6.0/rwlock.dll
+/Users/junjieli/Desktop/test.nosync/rwlock/bin/Debug/net6.0/rwlock.pdb
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.csproj.AssemblyReference.cache
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.GeneratedMSBuildEditorConfig.editorconfig
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.AssemblyInfoInputs.cache
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.AssemblyInfo.cs
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.csproj.CoreCompileInputs.cache
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.dll
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/refint/rwlock.dll
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.pdb
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/rwlock.genruntimeconfig.cache
+/Users/junjieli/Desktop/test.nosync/rwlock/obj/Debug/net6.0/ref/rwlock.dll
