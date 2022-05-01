@@ -22,7 +22,8 @@ public class ReadWriteLockFIFO{
     //for both reader and writer, wait
     private Queue<QueueItem> waitQueue = new Queue<QueueItem>();
     //ready to read, threadIds
-    private HashSet<int> readyReader = new HashSet<int>();
+    //<thread, count> support reEntrant
+    private Dictionary<int,int> readyReader = new Dictionary<int, int>();
     //for reEntrant
     private int writeCount = 0;
     //record the writing Id to support reEntrant
@@ -40,27 +41,42 @@ public class ReadWriteLockFIFO{
             Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getReadStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
         }
         try{
-            //enqueue
-            waitQueue.Enqueue(new QueueItem(Kind.Reader,Thread.CurrentThread.ManagedThreadId));
-            //FIFO
             QueueItem item;
             //writing or waiting to write
             if(writeCount>0){
-                //just wait
+                //enqueue
+                waitQueue.Enqueue(new QueueItem(Kind.Reader,Thread.CurrentThread.ManagedThreadId));
             }
             //reading
             else if(readyReader.Count>0){
-                item = waitQueue.Peek();
-                while(waitQueue.Count>0&&item.kind==Kind.Reader){
-                    item = waitQueue.Dequeue();
-                    readyReader.Add(item.threadId);
-                    if(waitQueue.Count>0){
-                        item = waitQueue.Peek();
+                //reEntrant
+                if(readyReader.ContainsKey(Thread.CurrentThread.ManagedThreadId)){
+                    readyReader[Thread.CurrentThread.ManagedThreadId]+=1;
+                }
+                else{
+                    //enqueue
+                    waitQueue.Enqueue(new QueueItem(Kind.Reader,Thread.CurrentThread.ManagedThreadId));
+                    item = waitQueue.Peek();
+                    while(waitQueue.Count>0&&item.kind==Kind.Reader){
+                        item = waitQueue.Dequeue();
+                        if(readyReader.ContainsKey(item.threadId)){
+                            readyReader[item.threadId]+=1;
+                            throw new Exception("不应该出现");
+                        }
+                        else{
+                            readyReader.Add(item.threadId,1);
+                        }
+
+                        if(waitQueue.Count>0){
+                            item = waitQueue.Peek();
+                        }
                     }
                 }
             }
             //free
             else{
+                //enqueue
+                waitQueue.Enqueue(new QueueItem(Kind.Reader,Thread.CurrentThread.ManagedThreadId));
                 item = waitQueue.Dequeue();
                 //writer
                 if(item.kind==Kind.Writer){
@@ -70,7 +86,7 @@ public class ReadWriteLockFIFO{
                 }
                 //reader
                 else{
-                    readyReader.Add(item.threadId);
+                    readyReader.Add(item.threadId,1);
                     readEvent.Set();
                     while(waitQueue.Count>0){
                         item=waitQueue.Peek();
@@ -78,7 +94,13 @@ public class ReadWriteLockFIFO{
                             break;
                         }
                         waitQueue.Dequeue();
-                        readyReader.Add(item.threadId);
+                        if(readyReader.ContainsKey(item.threadId)){
+                            readyReader[item.threadId]+=1;
+                            throw new Exception("不应该出现");
+                        }
+                        else{
+                            readyReader.Add(item.threadId,1);
+                        }
                     }
                 }
             }
@@ -90,7 +112,7 @@ public class ReadWriteLockFIFO{
             Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getReadEnd]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
         }
         //wait read signal
-        while(! readyReader.Contains(Thread.CurrentThread.ManagedThreadId)){
+        while(! readyReader.ContainsKey(Thread.CurrentThread.ManagedThreadId)){
             //yield
             Thread.Sleep(0);
         }
@@ -103,7 +125,11 @@ public class ReadWriteLockFIFO{
             Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} releaseReadStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
         }
         try{
-            readyReader.Remove(Thread.CurrentThread.ManagedThreadId);
+            readyReader[Thread.CurrentThread.ManagedThreadId]-=1;
+            if(readyReader[Thread.CurrentThread.ManagedThreadId]==0){
+                readyReader.Remove(Thread.CurrentThread.ManagedThreadId);
+            }
+            
             if(readyReader.Count==0){
                 readEvent.Reset();
             }
@@ -118,7 +144,7 @@ public class ReadWriteLockFIFO{
                 }
                 //reader
                 else{
-                    readyReader.Add(item.threadId);
+                    readyReader.Add(item.threadId,1);
                     readEvent.Set();
                     while(waitQueue.Count>0){
                         item=waitQueue.Peek();
@@ -126,7 +152,13 @@ public class ReadWriteLockFIFO{
                             break;
                         }
                         waitQueue.Dequeue();
-                        readyReader.Add(item.threadId);
+                        if(readyReader.ContainsKey(item.threadId)){
+                            readyReader[item.threadId]+=1;
+                            throw new Exception("不应该出现");
+                        }
+                        else{
+                            readyReader.Add(item.threadId,1);
+                        }
                     }
                 }
             }
@@ -151,7 +183,13 @@ public class ReadWriteLockFIFO{
                 waitQueue.Enqueue(new QueueItem(Kind.Writer,Thread.CurrentThread.ManagedThreadId));
                 QueueItem item = waitQueue.Peek();
                 while(waitQueue.Count>0&&item.kind==Kind.Reader){
-                    readyReader.Add(item.threadId);
+                    if(readyReader.ContainsKey(item.threadId)){
+                        readyReader[item.threadId]+=1;
+                        throw new Exception("不应该出现");
+                    }
+                    else{
+                        readyReader.Add(item.threadId,1);
+                    }
                     waitQueue.Dequeue();
                     if(waitQueue.Count>0){
                         item=waitQueue.Peek();
@@ -181,7 +219,7 @@ public class ReadWriteLockFIFO{
                 }
                 //reader
                 else{
-                    readyReader.Add(item.threadId);
+                    readyReader.Add(item.threadId,1);
                     readEvent.Set();
                     while(waitQueue.Count>0){
                         item=waitQueue.Peek();
@@ -189,7 +227,13 @@ public class ReadWriteLockFIFO{
                             break;
                         }
                         waitQueue.Dequeue();
-                        readyReader.Add(item.threadId);
+                        if(readyReader.ContainsKey(item.threadId)){
+                            readyReader[item.threadId]+=1;
+                            throw new Exception("不应该出现");
+                        }
+                        else{
+                            readyReader.Add(item.threadId,1);
+                        }
                     }
                 }
             }
@@ -229,7 +273,7 @@ public class ReadWriteLockFIFO{
                 }
                 //reader
                 else{
-                    readyReader.Add(item.threadId);
+                    readyReader.Add(item.threadId,1);
                     readEvent.Set();
                     while(waitQueue.Count>0){
                         item=waitQueue.Peek();
@@ -237,7 +281,13 @@ public class ReadWriteLockFIFO{
                             break;
                         }
                         waitQueue.Dequeue();
-                        readyReader.Add(item.threadId);
+                        if(readyReader.ContainsKey(item.threadId)){
+                            readyReader[item.threadId]+=1;
+                            throw new Exception("不应该出现");
+                        }
+                        else{
+                            readyReader.Add(item.threadId,1);
+                        }
                     }
                 }
             }

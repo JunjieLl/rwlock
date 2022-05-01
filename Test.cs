@@ -1,7 +1,5 @@
 
 class Test{
-    // private static ReadWriteLock readWriteLock = new ReadWriteLock(true);
-    //private static ReadWriteLockRe readWriteLock = new ReadWriteLockRe(true);
     private static ReadWriteLockFIFO readWriteLock = new ReadWriteLockFIFO(false);
     private static int res = 0;
     
@@ -21,8 +19,8 @@ class Test{
 
     static void Main(string[] args){
         List<Task> tasks = new List<Task>();
-        for(int i=0;i<40000;++i){
-            if(i%3==0){
+        for(int i=0;i<1400000;++i){
+            if(i%1300==0){
                 tasks.Add(Task.Run(()=>write(new Random().Next()%200)));
             }
             else{
