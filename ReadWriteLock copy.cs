@@ -4,9 +4,10 @@ using System.Threading;
 
 public class ReadWriteLockRe{
     //mutex lock for writeCount, readCount, writeCount, writeWaitQueue.Count
-    private Object mutex = new Object();
+    private readonly Object mutex = new Object();
     private int readCount = 0;
     private int readWait = 0;
+    private int readReady = 0;
     private Queue<int> writeWaitQueue = new Queue<int>();
     private int writeCount = 0;
     private int writingThreadId = -1;//record the writing Id to support reEntrant
@@ -37,7 +38,7 @@ public class ReadWriteLockRe{
                     readEvent.Set();
                 }
                 //reading--no action
-                readCount+=1+readWait;
+                readReady+=1+readWait;
                 readWait=0;
             }
         }
@@ -50,7 +51,19 @@ public class ReadWriteLockRe{
         //wait read signal
         
         readEvent.WaitOne();
-        
+
+        Monitor.Enter(mutex);
+        try{
+            readCount+=1;
+            if(readCount==readReady){
+                //本次读者已经放完
+                readEvent.Reset();
+                readReady=0;
+            }
+        }
+        finally{
+            Monitor.Exit(mutex);
+        }
     }
 
     public void releaseReadLock(){
