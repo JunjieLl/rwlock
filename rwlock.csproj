@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <StartUpObject>Test</StartUpObject>
+    <StartUpObject>Test3</StartUpObject>
   </PropertyGroup>
 
 </Project>

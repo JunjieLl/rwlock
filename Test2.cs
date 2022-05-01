@@ -6,7 +6,8 @@ using System.Collections.Generic;
 public class SynchronizedCache
 {
     //private ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
-    private ReadWriteLock readWriteLock = new ReadWriteLock(false);
+    //private ReadWriteLock readWriteLock = new ReadWriteLock(false);
+    private static ReadWriteLockFIFO readWriteLock = new ReadWriteLockFIFO(false);
     private Dictionary<int, string> innerCache = new Dictionary<int, string>();
 
     public int Count

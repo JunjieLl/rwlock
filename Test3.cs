@@ -1,6 +1,7 @@
 
 class Test3{
-    private static ReadWriteLock readWriteLock = new ReadWriteLock(true);
+    //private static ReadWriteLock readWriteLock = new ReadWriteLock(true);
+    private static ReadWriteLockFIFO readWriteLock = new ReadWriteLockFIFO(true);
     static void reEntrantRead(){
         readWriteLock.getReadLock();
         readWriteLock.getReadLock();
@@ -19,7 +20,7 @@ class Test3{
 
 
     static void Main(){
-        Task task = Task.Run(()=>reEntrantWrite());
+        Task task = Task.Run(()=>reEntrantRead());
         Task.WaitAll(task);
     }
 }

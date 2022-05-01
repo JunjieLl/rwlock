@@ -36,6 +36,9 @@ public class ReadWriteLockFIFO{
 
     public void getReadLock(){
         Monitor.Enter(mutex);
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getReadStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         try{
             //enqueue
             waitQueue.Enqueue(new QueueItem(Kind.Reader,Thread.CurrentThread.ManagedThreadId));
@@ -83,18 +86,22 @@ public class ReadWriteLockFIFO{
         finally{
             Monitor.Exit(mutex);
         }
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getReadEnd]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         //wait read signal
         while(! readyReader.Contains(Thread.CurrentThread.ManagedThreadId)){
             //yield
             Thread.Sleep(0);
         }
-        
         readEvent.WaitOne();
     }
 
     public void releaseReadLock(){
         Monitor.Enter(mutex);
-       
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} releaseReadStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         try{
             readyReader.Remove(Thread.CurrentThread.ManagedThreadId);
             if(readyReader.Count==0){
@@ -127,11 +134,16 @@ public class ReadWriteLockFIFO{
         finally{
             Monitor.Exit(mutex);
         }
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} releaseReadEnd]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
     }
 
     public void getWriteLock(){
         Monitor.Enter(mutex);
-       
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getWriteStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         try{
             //reading
             if(readyReader.Count>0){
@@ -185,6 +197,9 @@ public class ReadWriteLockFIFO{
         finally{
             Monitor.Exit(mutex);
         }
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} getWriteEnd]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         //prevent other write thread from entering
         //keep exclusive in reEntrant
         while(writingThreadId!=Thread.CurrentThread.ManagedThreadId){
@@ -195,7 +210,9 @@ public class ReadWriteLockFIFO{
 
     public void releaseWriteLock(){
         Monitor.Enter(mutex);
-        
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} releaseWriteStart]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
+        }
         try{
             writeCount-=1;
             if(writeCount==0){
@@ -227,6 +244,9 @@ public class ReadWriteLockFIFO{
         }
         finally{
             Monitor.Exit(mutex);
+        }
+        if(isDebug){
+            Console.WriteLine($"[thread: {Thread.CurrentThread.ManagedThreadId} releaseWriteEnd]: waitQueue: {waitQueue.Count}, readyReader: {readyReader.Count}, writeCount: {writeCount}, writingThreadId: {writingThreadId}");
         }
     }
 }
