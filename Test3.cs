@@ -1,4 +1,4 @@
-
+using System;
 class Test3{
     private static ReadWriteLockFIFO readWriteLock = new ReadWriteLockFIFO(true);
     static void reEntrantRead(){
@@ -19,7 +19,8 @@ class Test3{
 
 
     static void Main(){
-        Task task = Task.Run(()=>reEntrantWrite());
-        Task.WaitAll(task);
+        Task task1 = Task.Run(()=>reEntrantWrite());
+      	Task task2 = Task.Run(()=>reEntrantRead());
+        Task.WaitAll(task1,task2);
     }
 }
